@@ -224,3 +224,4 @@
 
 /* Staging tab */
 #define IDC_ENABLE_NATIVE_D3D9       9001
+#define IDC_ENABLE_ARB               9002

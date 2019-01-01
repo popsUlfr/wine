@@ -50,6 +50,22 @@ static void nine_set(BOOL status)
     set_reg_key(config_key, keypath("DllRedirects"), "d3d9", status ? "d3d9-nine.dll" : NULL);
 }
 
+/*
+ * OpenGL shading language toggle
+ */
+static BOOL glsl_get(void)
+{
+    char *buf = get_reg_key(config_key, "Direct3D", "MaxVersionGL", NULL);
+    BOOL ret = buf ? !!*buf : FALSE;
+    HeapFree(GetProcessHeap(), 0, buf);
+    return ret;
+}
+
+static void glsl_set(BOOL status)
+{
+    set_reg_key(config_key, "Direct3D", "UseGLSL", status ? "disabled" : "enabled");
+    set_reg_key_dword(config_key, "Direct3D", "MaxVersionGL", status ? 0x00030001 : NULL);
+}
 
 static void load_staging_settings(HWND dialog)
 {
@@ -57,6 +73,7 @@ static void load_staging_settings(HWND dialog)
 #if !defined(HAVE_D3D9NINE)
     disable(IDC_ENABLE_NATIVE_D3D9);
 #endif
+    CheckDlgButton(dialog, IDC_ENABLE_ARB, glsl_get() ? BST_CHECKED : BST_UNCHECKED);
 }
 
 INT_PTR CALLBACK StagingDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -84,6 +101,10 @@ INT_PTR CALLBACK StagingDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
         {
         case IDC_ENABLE_NATIVE_D3D9:
             nine_set(IsDlgButtonChecked(hDlg, IDC_ENABLE_NATIVE_D3D9) == BST_CHECKED);
+            SendMessageW(GetParent(hDlg), PSM_CHANGED, 0, 0);
+            return TRUE;
+        case IDC_ENABLE_ARB:
+            glsl_set(IsDlgButtonChecked(hDlg, IDC_ENABLE_ARB) == BST_CHECKED);
             SendMessageW(GetParent(hDlg), PSM_CHANGED, 0, 0);
             return TRUE;
         }
